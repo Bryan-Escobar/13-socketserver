@@ -74,6 +74,7 @@ export class TicketService
 
     private onTicketNumberChnged() //envia la cantidad de tickets pendientes
     {
+        console.log('onTicketNumberChnged en el lado del servidor');
         this.wssService.sendMessage('on-ticket-count-changed',this.pendingTickets.length);
     }
 }

@@ -32,6 +32,7 @@ export class WssService
         {
             if(client.readyState===WebSocket.OPEN)
             {
+                console.log('Sending message to client');
                 client.send(JSON.stringify({type,payload}));
             }
         }
