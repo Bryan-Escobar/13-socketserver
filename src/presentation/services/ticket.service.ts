@@ -1,5 +1,6 @@
 import { UuidAdapter } from "../../config/uuid.adapter";
 import { Ticket } from "../../domain/interfaces/ticket";
+import { WssService } from "./wss.service";
 
 export class TicketService
 {
@@ -10,7 +11,10 @@ export class TicketService
         { id: UuidAdapter.v4(), number: 4, createdAt: new Date(), done: false },
         { id: UuidAdapter.v4(), number: 5, createdAt: new Date(), done: false },
     ];
+    constructor(private readonly wssService=WssService.instance //singleton
 
+    )
+    {}
 
     private readonly workingOnTickets:Ticket[]=[];
 
@@ -34,8 +38,10 @@ export class TicketService
     {
         const ticket:Ticket={id:UuidAdapter.v4(),number:(this.tickets.length+1),createdAt:new Date(),done:false};
         this.tickets.push(ticket);
+        this.onTicketNumberChnged();
         return ticket;
-        //Todo: Ws para notificar a los clientes que el ticket fue creado
+
+
     }
     public drawTicket(desk:string)
     {
@@ -64,5 +70,10 @@ export class TicketService
             return ticket;
         })
         return {status:'ok'};
+    }
+
+    private onTicketNumberChnged() //envia la cantidad de tickets pendientes
+    {
+        this.wssService.sendMessage('on-ticket-count-changed',this.pendingTickets.length);
     }
 }

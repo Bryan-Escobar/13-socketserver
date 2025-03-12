@@ -14,12 +14,12 @@ function main() {
 
   const server = new Server({
     port: envs.PORT,
-    routes: AppRoutes.routes,
   });
   const httpServer=createServer(server.app); //el servidor http tendra las mismas configuraciones que el servidor de express
   WssService.initWss({server:httpServer});
   httpServer.listen(envs.PORT, () => {
     console.log(`Server running on port ${envs.PORT}`);
   });
+  server.setRoutes(AppRoutes.routes);
   // server.start();
 }
