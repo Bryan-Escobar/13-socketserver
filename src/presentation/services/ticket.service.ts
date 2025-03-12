@@ -56,6 +56,7 @@ export class TicketService
 
         //Todo: Ws para notificar a los clientes que el ticket fue atendido
         this.onTicketNumberChanged();
+        this.onWorkingOnChanged();
         return {status:'ok',ticket}; //le devuelve el ticket al que se le asigno el escritorio
     }
 
@@ -77,5 +78,10 @@ export class TicketService
     {
         console.log('onTicketNumberChnged en el lado del servidor');
         this.wssService.sendMessage('on-ticket-count-changed',this.pendingTickets.length);
+    }
+    private onWorkingOnChanged()
+    {
+        console.log('onWorkingOnChanged en el lado del servidor');
+        this.wssService.sendMessage('on-working-changed',this.lastWorkingOnTickets);
     }
 }

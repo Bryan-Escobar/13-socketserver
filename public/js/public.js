@@ -24,4 +24,43 @@ async function loadCurrentTickets() {
     renderTickets(tickets);
 }
 
+
+function connectToWebSockets() {
+
+    const socket = new WebSocket( 'ws://localhost:3000/ws' );
+  
+    socket.onmessage = ( event ) => {
+        const {type,payload}=JSON.parse(event.data);
+        if(type!=='on-working-changed') return; //el type debe ser el mismo que el enviado por el server, sino no hace nada
+          
+        renderTickets(payload);
+  
+      };
+  
+    socket.onclose = ( event ) => {
+      console.log( 'Connection closed' );
+      setTimeout( () => {
+        console.log( 'retrying to connect' );
+        connectToWebSockets();
+      }, 1500 );
+  
+    };
+  
+    socket.onopen = ( event ) => {
+      console.log( 'Connected' );
+    };
+  
+  }
+
+
+
+
+
+
+
 loadCurrentTickets();
+connectToWebSockets();
+
+
+
+
