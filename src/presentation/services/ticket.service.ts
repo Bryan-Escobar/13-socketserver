@@ -4,7 +4,7 @@ import { WssService } from "./wss.service";
 
 export class TicketService
 {
-    public readonly tickets: Ticket[] = [
+    public  tickets: Ticket[] = [
         { id: UuidAdapter.v4(), number: 1, createdAt: new Date(), done: false },
         { id: UuidAdapter.v4(), number: 2, createdAt: new Date(), done: false },
         { id: UuidAdapter.v4(), number: 3, createdAt: new Date(), done: false },
@@ -26,7 +26,7 @@ export class TicketService
 
     public get lastWorkingOnTickets():Ticket[]
     {
-        return this.workingOnTickets.splice(0,4); //trae los primeros 4 elementos
+        return this.workingOnTickets.slice(0,4); //trae los primeros 4 elementos
         //esto se hace, ya que los nuevos tickes en el array workingOnTickets se van añadiendo al principio, se van apilando
     }
 
@@ -38,12 +38,12 @@ export class TicketService
     {
         const ticket:Ticket={id:UuidAdapter.v4(),number:(this.tickets.length+1),createdAt:new Date(),done:false};
         this.tickets.push(ticket);
-        this.onTicketNumberChnged();
+        this.onTicketNumberChanged();
         return ticket;
 
 
     }
-    public drawTicket(desk:string)
+    public drawTicket(desk:string) //esta trae el primer ticket que no ha sido atendido, y lo asigna a un escritorio
     {
         const ticket=this.tickets.find(t=>!t.handleAtDesk); //retorna el primer ticket que cumpla con dicha condicion
         if(!ticket) return {status:'error',message:'No hay tickets pendientes'};
@@ -55,14 +55,15 @@ export class TicketService
         // this.workingOnTickets.push(ticket); //añade el ticket al final del array
 
         //Todo: Ws para notificar a los clientes que el ticket fue atendido
-        return {status:'ok',ticket};
+        this.onTicketNumberChanged();
+        return {status:'ok',ticket}; //le devuelve el ticket al que se le asigno el escritorio
     }
 
     public onFinishedTicket(id:string)
     {
         const ticket=this.tickets.find(t=>t.id===id);
         if(!ticket) return {status:'error',message:'Ticket no encontrado'};
-        this.tickets.map(ticket=>{
+        this.tickets=this.tickets.map(ticket=>{
             if(ticket.id===id)
             {
                 ticket.done=true;
@@ -72,7 +73,7 @@ export class TicketService
         return {status:'ok'};
     }
 
-    private onTicketNumberChnged() //envia la cantidad de tickets pendientes
+    private onTicketNumberChanged() //envia la cantidad de tickets pendientes
     {
         console.log('onTicketNumberChnged en el lado del servidor');
         this.wssService.sendMessage('on-ticket-count-changed',this.pendingTickets.length);

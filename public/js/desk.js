@@ -3,6 +3,9 @@
 const lblPending=document.querySelector('#lbl-pending');
 const deskHeader=document.querySelector('h1'); //retorna el primer h1 que encuentre
 const noMoreAlert=document.querySelector('.alert');
+const btnDraw=document.querySelector('#btn-draw');
+const btnDone=document.querySelector('#btn-done');
+const lblCurrentTicket=document.querySelector('small'); //small donde se mostrará el error
 
 const searchParams=new URLSearchParams(window.location.search);
 if(!searchParams.has('escritorio')) 
@@ -11,6 +14,7 @@ if(!searchParams.has('escritorio'))
         throw new Error('El escritorio es obligatorio');
     }
 const deskNumber=searchParams.get('escritorio');
+let workingTicket=null; //ticket en el que se está trabajando
 deskHeader.innerText=deskNumber;
 
 function checkTicketCount(currentCount=0)
@@ -30,7 +34,7 @@ function checkTicketCount(currentCount=0)
 //NOTA:Uncaught (in promise) TypeError: Cannot set properties of null (setting 'innerHTML')
 //Esto indica que el id de la referencia no existe en el html
 //Para solucionar esto, se debe verificar que el id exista en el html
-
+//ademas puede se causado por poner el endpoint mal en el fetch
 
 async function loadInitialCount() {
     const pendingTickets=await fetch('api/ticket/pending').then(res=>res.json());
@@ -39,7 +43,38 @@ async function loadInitialCount() {
     checkTicketCount(pendingTickets.length);
 }
 
+async function getTicket () {
+    await finishTicket();
+    const {status,ticket,message}=await fetch('/api/ticket/draw/'+deskNumber)
+    .then(res=>res.json());
 
+    if(status==='error')
+    {
+        lblCurrentTicket.innerText=message;
+        return;
+    }
+    workingTicket=ticket;
+    lblCurrentTicket.innerText=ticket.number;
+}
+
+async function finishTicket() {
+  if(!workingTicket)
+  {
+    console.log("No hay ticket");
+    return;
+  }
+  const {status,message}=await fetch('/api/ticket/done/'+workingTicket.id,
+    {
+      method:'PUT',
+    })
+    .then(res=>res.json());
+    console.log(status,message);
+    if(status==='ok')
+    {
+      workingTicket=null;
+      lblCurrentTicket.innerText='Nadie';
+    }
+}
 
 function connectToWebSockets() {
 
@@ -71,9 +106,10 @@ function connectToWebSockets() {
   
   }
   
+//Listeners
+  btnDraw.addEventListener('click',getTicket);
 
-
-
+  btnDone.addEventListener('click',finishTicket);
 
   connectToWebSockets();
   loadInitialCount();

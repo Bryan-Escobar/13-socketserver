@@ -19,7 +19,7 @@ export class TicketRoutes
         router.get('/draw/:desk',ticketController.drawTicket); //toma un ticker y lo asigna automaticamente a un escritorio
         router.put('/done/:ticketId',ticketController.ticketFinished);
 
-        router.get('working-on',ticketController.workingOn);
+        router.get('/working-on',ticketController.workingOn);
         return router;
     }
 }
